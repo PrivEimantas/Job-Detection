@@ -72,6 +72,9 @@ class JobScraper:
                 job_cards = soup.find_all('div', class_='jobsearch-SerpJobCard')
 
             print(f"✓ Found {len(job_cards)} jobs on search page")
+            # max_jobs = job_cards if len(job_cards) < max_jobs else max_jobs
+
+
             print(f"Will scrape full details for {min(len(job_cards), max_jobs)} jobs\n")
 
             # Limit to max_jobs
@@ -117,7 +120,7 @@ class JobScraper:
 
                 # Polite delay before next job
                 if i < len(job_cards):
-                    delay = random.uniform(4, 8)
+                    delay = random.uniform(0.46576787, 1.457654)
                     print(f"\n⏳ Waiting {delay:.1f} seconds before next job...")
                     time.sleep(delay)
 
@@ -177,6 +180,49 @@ class JobScraper:
         except:
             pass
 
+    def _extract_company_name(self, soup):
+        """
+        Extract company name from an Indeed job page using multiple fallback methods.
+        Returns 'Unknown' if all methods fail.
+        """
+        # 1. Standard data-company-name attribute
+        company = soup.find('div', {'data-company-name': True})
+        if company:
+            return company.get('data-company-name')
+
+        # 2. Test IDs commonly used in 2023–2025
+        selectors = [
+            ('a', {'data-testid': 'inlineHeader-companyName'}),
+            ('span', {'data-testid': 'inlineHeader-companyName'}),
+            ('div', {'data-testid': 'inlineHeader-companyName'}),
+            ('span', {'data-testid': 'companyName'}),
+            ('div', {'data-testid': 'companyName'}),
+        ]
+
+        for tag, attrs in selectors:
+            result = soup.find(tag, attrs)
+            if result:
+                return result.get_text(strip=True)
+
+        # 3. Sponsored jobs sometimes use this CSS class
+        result = soup.find('span', class_='css-1h7lukg')
+        if result:
+            return result.get_text(strip=True)
+
+        # 4. Older layouts (rare but still appear)
+        result = soup.find('div', class_='jobsearch-InlineCompanyRating')
+        if result:
+            span = result.find('div')
+            if span:
+                return span.get_text(strip=True)
+
+        # 5. As a last resort, try the meta tag
+        meta_company = soup.find('meta', attrs={'property': 'og:site_name'})
+        if meta_company:
+            return meta_company.get('content')
+
+        return "Unknown"
+
     def _parse_indeed_full_page(self, soup, url):
         """Parse COMPLETE job details from the full job posting page"""
         try:
@@ -204,8 +250,11 @@ class JobScraper:
 
             # ===== COMPANY NAME =====
             company = soup.find('div', {'data-company-name': True})
+
+
             if company:
-                job_data['company'] = company.get('data-company-name')
+                # job_data['company'] = company.get('data-company-name')
+                job_data['company'] = self._extract_company_name(soup)
 
             if job_data['company'] == 'Unknown':
                 company = soup.find('a', {'data-testid': 'inlineHeader-companyName'})

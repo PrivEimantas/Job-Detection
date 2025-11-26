@@ -5,9 +5,10 @@ import json
 
 
 def main():
-    url = 'https://uk.indeed.com/jobs?q=junior+software+engineer&l=Manchester%2C+Greater+Manchester&from=searchOnHP%2Cwhereautocomplete&vjk=dfa1aa4ef118ff5a&advn=2999229246842776' #input("Enter the job posting URL: ")
+    # url = 'https://uk.indeed.com/jobs?q=junior+software+engineer&l=Manchester%2C+Greater+Manchester&from=searchOnHP%2Cwhereautocomplete&vjk=dfa1aa4ef118ff5a&advn=2999229246842776' #input("Enter the job posting URL: ")
     scraper = JobScraper()
 
+    # replace this with something that extracts all info when a user is on a search results page
     search_url = "https://uk.indeed.com/jobs?q=junior+software+engineer&l=Manchester"
 
     print("=" * 70)
@@ -16,7 +17,7 @@ def main():
     print()
 
     # Scrape jobs with FULL descriptions
-    all_jobs = scraper.scrape_indeed_search_full(search_url, max_jobs=2)
+    all_jobs = scraper.scrape_indeed_search_full(search_url)
 
     print("\n" + "=" * 70)
     print(f"✓ COMPLETE! Scraped {len(all_jobs)} jobs with full details")
@@ -53,6 +54,10 @@ def main():
     print(f"\n{'=' * 70}")
     print(f"✓ Saved {len(all_jobs)} jobs with FULL descriptions to '{output_file}'")
     print(f"{'=' * 70}")
+
+
+
+
 
 
 if __name__ == '__main__':
